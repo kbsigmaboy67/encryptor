@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Secure Transfer</title>
+<meta name="description" content="Private file transfer utility">
+<meta name="robots" content="noindex, nofollow">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Header ─────────────────────────────────────────────────────── -->
+  <header>
+    <div class="logo-icon"></div>
+    <div>
+      <div class="logo-text">VAULT</div>
+      <div class="logo-sub">Secure Transfer Utility</div>
+    </div>
+    <div class="header-badge">
+      <span class="badge badge-green">AES-256-GCM</span>
+      <span class="badge badge-blue">LOCAL ONLY</span>
+    </div>
+  </header>
+
+  <!-- ── Tab Bar ────────────────────────────────────────────────────── -->
+  <div class="tabs-bar" role="tablist">
+    <button class="tab-btn active" data-tab="text"     role="tab"><i class="tab-icon">✉</i>Text</button>
+    <button class="tab-btn"        data-tab="file"     role="tab"><i class="tab-icon">📄</i>File</button>
+    <button class="tab-btn"        data-tab="zip"      role="tab"><i class="tab-icon">🗜</i>ZIP</button>
+    <button class="tab-btn"        data-tab="folder"   role="tab"><i class="tab-icon">📁</i>Folder</button>
+    <button class="tab-btn"        data-tab="binary"   role="tab"><i class="tab-icon">⬡</i>Binary</button>
+    <button class="tab-btn"        data-tab="tools"    role="tab"><i class="tab-icon">⚙</i>Tools</button>
+    <button class="tab-btn"        data-tab="settings" role="tab"><i class="tab-icon">⬡</i>Config</button>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: TEXT
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel active" id="tab-text">
+    <div class="panel-header">
+      <span class="panel-title">// TEXT ENCRYPT / DECRYPT</span>
+      <span class="panel-desc">Steganographic output — invisible chars</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Passphrase <span data-tip="PBKDF2-SHA256 × 600k iterations">ℹ</span></label>
+        <div class="pw-row">
+          <input type="password" id="txt-pw" placeholder="Enter passphrase…" autocomplete="off" spellcheck="false">
+          <button class="pw-toggle" data-target="txt-pw" title="Toggle visibility">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="txt-strength-fill"></div></div>
+        <div class="strength-label" id="txt-strength-label">strength: —</div>
+      </div>
+
+      <div class="cover-row">
+        <div class="field" style="margin:0">
+          <label>Plaintext to encrypt</label>
+          <textarea id="txt-plain" placeholder="Enter secret message here…" rows="6" spellcheck="false"></textarea>
+        </div>
+        <div class="field" style="margin:0">
+          <label>Cover text (optional) <span data-tip="Innocent text that hides the payload">ℹ</span></label>
+          <textarea id="txt-cover" placeholder="Public-facing text that conceals your message…" rows="6"></textarea>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary"   id="txt-encrypt-btn">⟳ Encrypt</button>
+        <button class="btn btn-secondary" id="txt-decrypt-btn">⟳ Decrypt</button>
+        <button class="btn btn-secondary btn-sm" id="txt-clear-btn">✕ Clear</button>
+      </div>
+
+      <div class="progress-wrap" id="txt-progress"><div class="progress-fill" id="txt-progress-fill"></div></div>
+      <div class="status" id="txt-status"></div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label>Output <span id="txt-out-chars" class="char-count"></span></label>
+        <div class="stego-out" id="txt-output">
+          <span class="output-placeholder">Encrypted stego text will appear here…</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-green btn-sm"     id="txt-copy-btn">📋 Copy</button>
+        <button class="btn btn-secondary btn-sm" id="txt-export-btn">⤓ Export .txt</button>
+        <button class="btn btn-secondary btn-sm" id="txt-import-btn">⤒ Import .txt</button>
+        <input type="file" id="txt-import-file" accept=".txt" style="display:none">
+        <button class="btn btn-secondary btn-sm" id="txt-paste-btn">📥 Paste &amp; Decrypt</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: FILE
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-file">
+    <div class="panel-header">
+      <span class="panel-title">// SINGLE FILE</span>
+      <span class="panel-desc">Up to 30MB+ — any file type</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="pw-row">
+          <input type="password" id="file-pw" placeholder="Enter passphrase…" autocomplete="off">
+          <button class="pw-toggle" data-target="file-pw" title="Toggle">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="file-strength-fill"></div></div>
+        <div class="strength-label" id="file-strength-label">strength: —</div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="field" style="margin:0">
+            <label>File to encrypt</label>
+            <div class="drop-zone" id="file-drop-enc">
+              <input type="file" id="file-input-enc">
+              <span class="drop-icon">📄</span>
+              <div>Drop file here or click to browse</div>
+              <div class="drop-name" id="file-enc-name"></div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-primary" id="file-encrypt-btn">⟳ Encrypt File</button>
+          </div>
+        </div>
+        <div>
+          <div class="field" style="margin:0">
+            <label>Encrypted file (.vlt) to decrypt</label>
+            <div class="drop-zone" id="file-drop-dec">
+              <input type="file" id="file-input-dec" accept=".vlt">
+              <span class="drop-icon">🔐</span>
+              <div>Drop .vlt file here or click to browse</div>
+              <div class="drop-name" id="file-dec-name"></div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-secondary" id="file-decrypt-btn">⟳ Decrypt File</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-wrap" id="file-progress"><div class="progress-fill" id="file-progress-fill"></div></div>
+      <div class="status" id="file-status"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: ZIP
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-zip">
+    <div class="panel-header">
+      <span class="panel-title">// ZIP ARCHIVE</span>
+      <span class="panel-desc">Encrypt/decrypt .zip and other archives</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="pw-row">
+          <input type="password" id="zip-pw" placeholder="Enter passphrase…" autocomplete="off">
+          <button class="pw-toggle" data-target="zip-pw" title="Toggle">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="zip-strength-fill"></div></div>
+        <div class="strength-label" id="zip-strength-label">strength: —</div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <div class="field" style="margin:0">
+            <label>ZIP / archive to encrypt</label>
+            <div class="drop-zone" id="zip-drop-enc">
+              <input type="file" id="zip-input-enc" accept=".zip,.gz,.tar,.7z,.rar,.bz2,.xz">
+              <span class="drop-icon">🗜</span>
+              <div>Drop archive here or click to browse</div>
+              <div class="drop-name" id="zip-enc-name"></div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-primary" id="zip-encrypt-btn">⟳ Encrypt Archive</button>
+          </div>
+        </div>
+        <div>
+          <div class="field" style="margin:0">
+            <label>Encrypted archive (.vlt) to decrypt</label>
+            <div class="drop-zone" id="zip-drop-dec">
+              <input type="file" id="zip-input-dec" accept=".vlt">
+              <span class="drop-icon">🔐</span>
+              <div>Drop .vlt file here or click to browse</div>
+              <div class="drop-name" id="zip-dec-name"></div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:12px">
+            <button class="btn btn-secondary" id="zip-decrypt-btn">⟳ Decrypt Archive</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="progress-wrap" id="zip-progress"><div class="progress-fill" id="zip-progress-fill"></div></div>
+      <div class="status" id="zip-status"></div>
+
+      <hr class="divider">
+      <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);">
+        ℹ Archive is encrypted as-is with an AES-256-GCM wrapper. To bundle multiple files, ZIP them first using your OS, then encrypt here.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: FOLDER
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-folder">
+    <div class="panel-header">
+      <span class="panel-title">// FOLDER / MULTI-FILE</span>
+      <span class="panel-desc">Select entire folder — bundled into one encrypted file</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="pw-row">
+          <input type="password" id="folder-pw" placeholder="Enter passphrase…" autocomplete="off">
+          <button class="pw-toggle" data-target="folder-pw" title="Toggle">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="folder-strength-fill"></div></div>
+        <div class="strength-label" id="folder-strength-label">strength: —</div>
+      </div>
+
+      <div class="field">
+        <label>Select folder (all files will be bundled)</label>
+        <div class="drop-zone" id="folder-drop">
+          <input type="file" id="folder-input" webkitdirectory multiple>
+          <span class="drop-icon">📁</span>
+          <div>Click to select folder</div>
+          <div class="drop-name" id="folder-name"></div>
+        </div>
+      </div>
+
+      <div id="folder-file-list" style="display:none;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);margin-bottom:6px;">FILES SELECTED:</div>
+        <div id="folder-file-items" style="max-height:150px;overflow-y:auto;font-size:11px;font-family:var(--font-mono);color:var(--text2);"></div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" id="folder-encrypt-btn">⟳ Encrypt Folder Bundle</button>
+      </div>
+
+      <hr class="divider">
+
+      <div class="field">
+        <label>Decrypt folder bundle (.vlt)</label>
+        <div class="drop-zone" id="folder-drop-dec">
+          <input type="file" id="folder-input-dec" accept=".vlt">
+          <span class="drop-icon">🔐</span>
+          <div>Drop bundle .vlt here or click</div>
+          <div class="drop-name" id="folder-dec-name"></div>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="folder-decrypt-btn">⟳ Decrypt &amp; Extract Files</button>
+      </div>
+
+      <div class="progress-wrap" id="folder-progress"><div class="progress-fill" id="folder-progress-fill"></div></div>
+      <div class="status" id="folder-status"></div>
+
+      <hr class="divider">
+      <div style="font-size:12px;color:var(--text3);font-family:var(--font-mono);">
+        ℹ Files are bundled into VLT Bundle v1 format, then AES-256-GCM encrypted as one file. Decryption extracts each file individually with its original filename and MIME type.
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: BINARY
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-binary">
+    <div class="panel-header">
+      <span class="panel-title">// BINARY / RAW DATA</span>
+      <span class="panel-desc">Hex, Base64, or raw byte operations</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="field">
+        <label>Passphrase</label>
+        <div class="pw-row">
+          <input type="password" id="bin-pw" placeholder="Enter passphrase…" autocomplete="off">
+          <button class="pw-toggle" data-target="bin-pw" title="Toggle">👁</button>
+        </div>
+        <div class="strength-bar"><div class="strength-fill" id="bin-strength-fill"></div></div>
+        <div class="strength-label" id="bin-strength-label">strength: —</div>
+      </div>
+
+      <div class="field">
+        <label>Input format</label>
+        <select id="bin-format">
+          <option value="hex">Hexadecimal</option>
+          <option value="base64">Base64</option>
+          <option value="raw">Raw text (UTF-8)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Input data</label>
+        <textarea id="bin-input" placeholder="Paste hex, base64, or raw bytes…" rows="5" spellcheck="false" style="font-family:var(--font-mono);font-size:12px;"></textarea>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary"   id="bin-encrypt-btn">⟳ Encrypt</button>
+        <button class="btn btn-secondary" id="bin-decrypt-btn">⟳ Decrypt</button>
+      </div>
+
+      <div class="field" style="margin-top:16px">
+        <label>Output format</label>
+        <select id="bin-out-format">
+          <option value="hex">Hexadecimal</option>
+          <option value="base64">Base64</option>
+          <option value="stego">Steganographic (invisible chars)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>Output</label>
+        <div class="stego-out" id="bin-output">
+          <span class="output-placeholder">Binary output will appear here…</span>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-green btn-sm"     id="bin-copy-btn">📋 Copy</button>
+        <button class="btn btn-secondary btn-sm" id="bin-export-btn">⤓ Export .bin</button>
+      </div>
+
+      <div class="progress-wrap" id="bin-progress"><div class="progress-fill" id="bin-progress-fill"></div></div>
+      <div class="status" id="bin-status"></div>
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: TOOLS
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-tools">
+    <div class="panel-header">
+      <span class="panel-title">// UTILITY TOOLS</span>
+    </div>
+    <div class="panel-body">
+
+      <div style="margin-bottom:24px">
+        <div style="font-size:12px;color:var(--accent);font-family:var(--font-mono);letter-spacing:0.08em;margin-bottom:12px;">▸ PASSPHRASE GENERATOR</div>
+        <div class="grid2" style="margin-bottom:12px">
+          <div>
+            <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Length</label>
+            <input type="text" id="gen-len" value="24">
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Mode</label>
+            <select id="gen-mode">
+              <option value="random">Random characters</option>
+              <option value="words">Word-based</option>
+              <option value="pin">Numeric PIN</option>
+            </select>
+          </div>
+        </div>
+        <div class="btn-row" style="margin-bottom:12px">
+          <button class="btn btn-primary btn-sm" id="gen-btn">⊕ Generate</button>
+          <button class="btn btn-green btn-sm"   id="gen-copy-btn">📋 Copy</button>
+        </div>
+        <div id="gen-output" class="output-box" style="font-size:14px;letter-spacing:0.05em;">
+          <span class="output-placeholder">Generated passphrase appears here…</span>
+        </div>
+        <div class="strength-bar" style="margin-top:6px"><div class="strength-fill" id="gen-strength-fill"></div></div>
+        <div class="strength-label" id="gen-strength-label">strength: —</div>
+      </div>
+
+      <hr class="divider">
+
+      <div style="margin-bottom:24px">
+        <div style="font-size:12px;color:var(--accent);font-family:var(--font-mono);letter-spacing:0.08em;margin-bottom:12px;">▸ HASH UTILITY</div>
+        <div class="field">
+          <label>Input text</label>
+          <textarea id="hash-input" rows="3" placeholder="Text to hash…" spellcheck="false"></textarea>
+        </div>
+        <div class="grid2" style="margin-bottom:12px">
+          <div>
+            <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Algorithm</label>
+            <select id="hash-algo">
+              <option value="SHA-256">SHA-256</option>
+              <option value="SHA-384">SHA-384</option>
+              <option value="SHA-512">SHA-512</option>
+              <option value="SHA-1">SHA-1 (legacy)</option>
+            </select>
+          </div>
+          <div style="display:flex;align-items:flex-end">
+            <button class="btn btn-primary btn-sm" id="hash-btn" style="width:100%">⊕ Hash</button>
+          </div>
+        </div>
+        <div id="hash-output" class="output-box"><span class="output-placeholder">Hash output…</span></div>
+        <div class="btn-row" style="margin-top:8px">
+          <button class="btn btn-green btn-sm" id="hash-copy-btn">📋 Copy</button>
+        </div>
+      </div>
+
+      <hr class="divider">
+
+      <div>
+        <div style="font-size:12px;color:var(--accent);font-family:var(--font-mono);letter-spacing:0.08em;margin-bottom:12px;">▸ EXPORT / IMPORT PASSPHRASE</div>
+        <div class="grid2">
+          <div>
+            <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Passphrase to export</label>
+            <div class="pw-row">
+              <input type="password" id="key-export-pw" placeholder="Passphrase…" autocomplete="off">
+              <button class="pw-toggle" data-target="key-export-pw" title="Toggle">👁</button>
+            </div>
+            <div class="btn-row" style="margin-top:8px">
+              <button class="btn btn-secondary btn-sm" id="key-export-btn">⤓ Export Encrypted Key</button>
+            </div>
+          </div>
+          <div>
+            <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Import key file</label>
+            <div class="drop-zone" style="padding:16px 10px;font-size:11px">
+              <input type="file" id="key-import-file" accept=".vkey">
+              <div>Drop .vkey file here</div>
+              <div class="drop-name" id="key-import-name"></div>
+            </div>
+            <div class="btn-row" style="margin-top:8px">
+              <button class="btn btn-secondary btn-sm" id="key-import-btn">⤒ Import &amp; Reveal</button>
+            </div>
+          </div>
+        </div>
+        <div class="status" id="tools-status"></div>
+        <div id="key-import-out" style="display:none;margin-top:8px;">
+          <label style="font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:0.1em;text-transform:uppercase;display:block;margin-bottom:6px;">Recovered passphrase</label>
+          <div class="output-box" id="key-import-val"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ════════════════════════════════════════════════════════════════
+       TAB: CONFIG
+  ═════════════════════════════════════════════════════════════════ -->
+  <div class="panel" id="tab-settings">
+    <div class="panel-header">
+      <span class="panel-title">// CONFIGURATION</span>
+    </div>
+    <div class="panel-body">
+
+      <div class="info-grid">
+        <div class="info-card"><div class="info-card-label">Cipher</div><div class="info-card-val">AES-256-GCM</div></div>
+        <div class="info-card"><div class="info-card-label">KDF</div><div class="info-card-val">PBKDF2-SHA256</div></div>
+        <div class="info-card"><div class="info-card-label">Iterations</div><div class="info-card-val">600,000</div></div>
+        <div class="info-card"><div class="info-card-label">Salt / IV</div><div class="info-card-val">32B / 12B (CSPRNG)</div></div>
+        <div class="info-card"><div class="info-card-label">Auth Tag</div><div class="info-card-val">128-bit GCM</div></div>
+        <div class="info-card"><div class="info-card-label">Stego chars</div><div class="info-card-val">256 invisible</div></div>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Auto-clear clipboard</div>
+          <div class="setting-sub">Wipes clipboard 30 seconds after copy</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-auto-clear" checked>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Show character counts</div>
+          <div class="setting-sub">Display byte/char counts on outputs</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-char-count" checked>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Steganographic output for text</div>
+          <div class="setting-sub">Use invisible chars (off = Base64)</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-stego" checked>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">Chunk large files</div>
+          <div class="setting-sub">Process 30MB+ files in chunks to avoid UI freeze</div>
+        </div>
+        <label class="toggle">
+          <input type="checkbox" id="cfg-chunks" checked>
+          <div class="toggle-track"></div>
+          <div class="toggle-thumb"></div>
+        </label>
+      </div>
+
+      <hr class="divider">
+      <div style="font-size:11px;color:var(--text3);font-family:var(--font-mono);line-height:1.9;">
+        <div style="color:var(--accent);margin-bottom:6px;">▸ SECURITY NOTES</div>
+        All cryptographic operations run entirely in your browser via the Web Crypto API.<br>
+        No data is ever sent to any server. No cookies, no tracking, no logs.<br>
+        The .vlt format: 4B magic + 12B IV + 32B salt + AES-GCM ciphertext + 16B auth tag.<br>
+        Stego encoding: 256 invisible codepoints — Tags block U+E0000, variation selectors, zero-width marks.<br>
+        Cover text and payload are separated by U+E007F TAG DELETE (zero visible width).<br>
+        Content larger than 20 MB is not rendered in-browser — downloaded directly instead.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /#app -->
+
+<footer>
+  <div class="footer-dot"></div>
+  <span>All operations local &amp; offline</span>
+  <span style="margin-left:auto;color:var(--text3)">AES-256-GCM · Web Crypto API · ChromeOS optimized</span>
+</footer>
+
+<script src="engine.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
